@@ -1,7 +1,5 @@
 # LTASoftware
-LSFA — Lighter Than Air Systems & Flight Analysis
-
-LSFA is a Python program we’re developing for our Intro to Engineering lighter-than-air vehicle project, LTA McQueen.
+Software for LTA grpup final project Intro to Engineering Lab at Kent State University
 
 The program helps us keep track of vehicle components, calculate mass and cost, and save different versions of our design as we make changes.
 
@@ -52,9 +50,3 @@ Current Progress
 * [ ]	Main menu integration and testing
 * [ ]	Flight physics calculations
 * [ ]	Testing and analysis functions
-
-Notes
-
-The program is still in development. Calculations are based on the component information we enter, so measurements and costs need to be kept up to date.
-
-The goal is to have one place where we can manage our design and check that LTA McQueen stays within the project requirements.
