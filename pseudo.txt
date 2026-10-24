@@ -1,0 +1,538 @@
+
+=====================================================
+LSFA - LIGHTER THAN AIR SYSTEMS & FLIGHT ANALYSIS
+MODULE: vehicle.py
+PURPOSE: Vehicle Configuration & Revision Management
+=====================================================
+
+
+---------------------------
+SECTION 1 - IMPORTS
+---------------------------
+
+IMPORT json
+IMPORT Path FROM pathlib
+IMPORT deepcopy FROM copy
+
+
+---------------------------
+SECTION 2 - CONSTANTS
+---------------------------
+
+SET MAX_MASS = 800
+SET MAX_BUDGET = 900
+
+SET BASE_DIR = directory containing vehicle.py
+SET DATA_DIR = BASE_DIR / "data"
+SET REVISION_DIR = DATA_DIR / "revisions"
+SET VEHICLE_FILE = DATA_DIR / "vehicle.json"
+
+CREATE DATA_DIR if it does not exist
+CREATE REVISION_DIR if it does not exist
+
+
+---------------------------
+SECTION 3 - VEHICLE DATA
+---------------------------
+
+DEFINE default_vehicle dictionary:
+
+    name = "Group 17 LTA"
+    revision = "REV-001"
+    revision_description = "Initial Design"
+
+    components = EMPTY LIST
+
+EACH component will contain:
+
+    id
+    name
+    category
+    mass_g
+    cost_gils
+    position_mm = [x, y, z]
+    excluded_from_mass_limit = TRUE/FALSE
+
+NOTE:
+    Battery and balloon are excluded from the
+    800 g competition mass limit.
+
+    Battery mass still matters for CG analysis.
+
+    Motor/ESC/propeller package costs must
+    not be counted multiple times.
+
+
+---------------------------
+SECTION 4 - INPUT VALIDATION
+---------------------------
+
+FUNCTION get_number(prompt, allow_negative):
+
+    LOOP FOREVER:
+
+        TRY:
+
+            ASK user for input
+
+            CONVERT input to FLOAT
+
+            IF number is not finite:
+                DISPLAY "Invalid number"
+                CONTINUE LOOP
+
+            IF number < 0 AND
+               allow_negative is FALSE:
+
+                DISPLAY "Negative values not allowed"
+                CONTINUE LOOP
+
+            RETURN number
+
+        EXCEPT ValueError:
+
+            DISPLAY "Please enter a valid number"
+
+
+---------------------------
+SECTION 5 - SAVE VEHICLE
+---------------------------
+
+FUNCTION save_vehicle(vehicle):
+
+    CREATE DATA_DIR if necessary
+
+    OPEN vehicle.json in WRITE mode
+
+    CONVERT vehicle dictionary to JSON
+
+    WRITE JSON with indentation = 4
+
+    CLOSE file
+
+    DISPLAY "Vehicle configuration saved"
+
+    RETURN success
+
+
+---------------------------
+SECTION 6 - LOAD VEHICLE
+---------------------------
+
+FUNCTION load_vehicle():
+
+    IF vehicle.json EXISTS:
+
+        TRY:
+
+            OPEN vehicle.json in READ mode
+
+            LOAD JSON into dictionary
+
+            CLOSE file
+
+            VALIDATE required vehicle fields
+
+            RETURN loaded vehicle
+
+        EXCEPT invalid JSON or invalid structure:
+
+            DISPLAY "Unable to load vehicle"
+            DISPLAY "Saved file needs inspection"
+
+            RETURN failure
+
+    ELSE:
+
+        CREATE independent copy of default_vehicle
+
+        SAVE new vehicle to vehicle.json
+
+        RETURN new vehicle
+
+
+---------------------------
+SECTION 7 - ADD COMPONENT
+---------------------------
+
+FUNCTION add_component(vehicle):
+
+    DISPLAY "REGISTER NEW COMPONENT"
+
+    ASK for component ID
+    REMOVE extra spaces
+    CONVERT ID to uppercase
+
+    IF ID is empty:
+        DISPLAY "Component ID required"
+        RETURN failure
+
+    FOR EACH existing component:
+
+        IF existing ID matches new ID:
+
+            DISPLAY "Duplicate component ID"
+            RETURN failure
+
+    ASK for component name
+
+    ASK for category
+
+    IF name or category is empty:
+        DISPLAY "Required field missing"
+        RETURN failure
+
+    mass = get_number(
+        "Enter mass in grams",
+        allow_negative = FALSE
+    )
+
+    cost = get_number(
+        "Enter cost in Gils",
+        allow_negative = FALSE
+    )
+
+    x = get_number("X Position", TRUE)
+    y = get_number("Y Position", TRUE)
+    z = get_number("Z Position", TRUE)
+
+    ASK whether component is excluded
+    from competition mass calculation
+
+    CREATE component dictionary:
+
+        id = component ID
+        name = component name
+        category = category
+        mass_g = mass
+        cost_gils = cost
+        position_mm = [x, y, z]
+        excluded_from_mass_limit = TRUE/FALSE
+
+    APPEND component dictionary
+    TO vehicle["components"]
+
+    CALL save_vehicle(vehicle)
+
+    DISPLAY "Component registered"
+
+    RETURN success
+
+
+---------------------------
+SECTION 8 - EDIT COMPONENT
+---------------------------
+
+FUNCTION edit_component(vehicle):
+
+    DISPLAY all registered components
+
+    ASK for component ID to edit
+
+    SEARCH vehicle["components"]
+    for matching component ID
+
+    IF no matching component:
+
+        DISPLAY "Component not found"
+        RETURN failure
+
+    DISPLAY current component information
+
+    DISPLAY editing options:
+
+        1 - Change name
+        2 - Change category
+        3 - Change mass
+        4 - Change cost
+        5 - Change position
+        6 - Change mass exclusion status
+        7 - Cancel
+
+    ASK user to select option
+
+    IF option = 1:
+        ASK for new name
+        VALIDATE name
+        UPDATE component name
+
+    ELSE IF option = 2:
+        ASK for new category
+        VALIDATE category
+        UPDATE category
+
+    ELSE IF option = 3:
+        GET new mass using get_number()
+        UPDATE mass_g
+
+    ELSE IF option = 4:
+        GET new cost using get_number()
+        UPDATE cost_gils
+
+    ELSE IF option = 5:
+        GET new X, Y, Z coordinates
+        UPDATE position_mm
+
+    ELSE IF option = 6:
+        ASK whether excluded from mass limit
+        UPDATE exclusion status
+
+    ELSE IF option = 7:
+        RETURN without changes
+
+    ELSE:
+        DISPLAY "Invalid selection"
+        RETURN failure
+
+---------------------------
+SECTION 9 - REMOVE COMPONENT
+---------------------------
+
+FUNCTION remove_component(vehicle):
+
+    DISPLAY all registered components
+
+    ASK for component ID to remove
+
+    SEARCH for matching component
+
+    IF component not found:
+
+        DISPLAY "Component not found"
+        RETURN failure
+
+    DISPLAY component details
+
+    ASK "Are you sure? Y/N"
+
+    IF response = YES:
+
+        REMOVE component from components list
+
+        CALL save_vehicle(vehicle)
+
+        DISPLAY "Component removed"
+
+        RETURN success
+
+    ELSE:
+
+        DISPLAY "Removal cancelled"
+
+        RETURN without changes
+
+
+---------------------------
+SECTION 10 - CALCULATE MASS
+---------------------------
+
+FUNCTION calculate_mass(vehicle):
+
+    SET regulated_mass = 0
+    SET total_flight_mass = 0
+
+    FOR EACH component:
+
+        ADD component mass to total_flight_mass
+
+        IF excluded_from_mass_limit is FALSE:
+
+            ADD component mass to regulated_mass
+
+    mass_margin = MAX_MASS - regulated_mass
+
+    DISPLAY regulated_mass
+    DISPLAY total_flight_mass
+    DISPLAY mass_margin
+
+    IF regulated_mass > MAX_MASS:
+
+        DISPLAY "WARNING: MASS LIMIT EXCEEDED"
+
+    ELSE:
+
+        DISPLAY "Mass requirement satisfied"
+
+    RETURN mass results
+
+NOTE:
+    Include every component that contributes
+    to flight mass in the registry.
+
+    Balloon buoyancy is calculated separately
+    in physics.py.
+
+
+---------------------------
+SECTION 11 - CALCULATE COST
+---------------------------
+
+FUNCTION calculate_cost(vehicle):
+
+    SET total_cost = 0
+
+    FOR EACH component:
+
+        ADD component cost_gils to total_cost
+
+    budget_remaining = MAX_BUDGET - total_cost
+
+    DISPLAY total_cost
+    DISPLAY budget_remaining
+
+    IF total_cost > MAX_BUDGET:
+
+        DISPLAY "WARNING: BUDGET EXCEEDED"
+
+    ELSE:
+
+        DISPLAY "Within project budget"
+
+    RETURN cost results
+
+
+---------------------------
+SECTION 12 - FINALIZE REVISION
+---------------------------
+
+FUNCTION new_revision(vehicle):
+
+    GET current revision string
+
+    EXAMPLE: "REV-001"
+
+    EXTRACT numeric portion of revision
+
+    CONVERT numeric portion to INTEGER
+
+    CALCULATE next revision number
+
+    FORMAT as "REV-002", "REV-003", etc.
+
+    CREATE revision filename using
+    current revision string
+
+    EXAMPLE:
+        data/revisions/REV-001.json
+
+    IF revision snapshot already exists:
+
+        DISPLAY "Revision already finalized"
+        RETURN failure
+
+    ASK user to confirm finalization
+
+    IF user cancels:
+        RETURN without changes
+
+    CREATE independent snapshot
+    of current vehicle dictionary
+
+    SAVE snapshot as revision JSON file
+
+    USE exclusive file creation mode
+    to prevent overwriting history
+
+    IF snapshot save fails:
+        DISPLAY error
+        DO NOT advance revision
+        RETURN failure
+
+    ASK user for description
+    of the NEXT revision
+
+    IF description is empty:
+        USE "New working revision"
+
+    UPDATE vehicle["revision"]
+    to next revision
+
+    UPDATE revision_description
+
+    CALL save_vehicle(vehicle)
+
+    DISPLAY finalized revision
+    DISPLAY new active revision
+
+    RETURN success
+
+
+---------------------------
+SECTION 13 - VIEW REVISION HISTORY
+---------------------------
+
+FUNCTION view_revisions():
+
+    SEARCH revisions directory
+    for files ending in .json
+
+    SORT revision files by number
+
+    IF no revisions found:
+
+        DISPLAY "No finalized revisions"
+        RETURN
+
+    FOR EACH revision file:
+
+        OPEN JSON file
+
+        READ:
+            revision number
+            revision description
+            component count
+
+        DISPLAY revision information
+
+    RETURN revision list
+
+
+---------------------------
+SECTION 14 - VIEW COMPONENTS
+---------------------------
+
+FUNCTION view_components(vehicle):
+
+    IF components list is empty:
+
+        DISPLAY "No components registered"
+        RETURN
+
+    FOR EACH component:
+
+        DISPLAY component ID
+        DISPLAY component name
+        DISPLAY category
+        DISPLAY mass
+        DISPLAY cost
+        DISPLAY position
+
+    RETURN
+
+
+---------------------------
+SECTION 15 - MODULE INITIALIZATION
+---------------------------
+
+WHEN vehicle.py is imported:
+
+    DEFINE constants
+    DEFINE default vehicle
+    DEFINE functions
+
+    DO NOT automatically launch menu
+
+
+WHEN application starts in main.py:
+
+    CALL load_vehicle()
+
+    STORE returned dictionary
+    as active vehicle
+
+    PASS active vehicle to functions
+    as needed
+
+=====================================================
+END OF vehicle.py
+=====================================================
