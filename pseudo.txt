@@ -1,116 +1,67 @@
 
-# ==================================================
-# LTA McQueen - Main Application
-# ==================================================
-
-# IMPORTS
-IMPORT the following functions FROM vehicle.py:
-    load_vehicle
-    add_component
-    edit_component
-    remove_component
-    view_components
-    calculate_mass
-    calculate_cost
-    new_revision
-    view_revisions
+ADD choice menu for different pages:
+   GET choice physics menu or main menu
+   if choice is physics:
 
 
-# ==================================================
-# MAIN FUNCTION
-# ==================================================
-
-DEFINE FUNCTION main():
-
-    # STEP 1 - LOAD VEHICLE
-
-    SET vehicle = CALL load_vehicle()
-
-    IF vehicle IS None:
-        PRINT "ERROR: Unable to load vehicle."
-        PRINT "Application startup aborted."
-        RETURN
-
-
-    # STEP 2 - MAIN MENU LOOP
+DEFINE FUNCTION physics_menu(vehicle):
 
     WHILE True:
 
-        PRINT blank line
         PRINT "================================"
-        PRINT "       LTA McQueen System"
+        PRINT "LTA McQueen - Physics Analysis"
         PRINT "================================"
-        PRINT "Vehicle: " + vehicle name
-        PRINT "Active Revision: " + vehicle revision
-        PRINT "--------------------------------"
-        PRINT "1 - View Components"
-        PRINT "2 - Register New Component"
-        PRINT "3 - Edit Component"
-        PRINT "4 - Remove Component"
-        PRINT "5 - Calculate Mass"
-        PRINT "6 - Calculate Cost"
-        PRINT "7 - Finalize Revision"
-        PRINT "8 - View Revision History"
-        PRINT "9 - Exit"
-        PRINT "================================"
+        PRINT "1 - Calculate Balloon Volume"
+        PRINT "2 - Calculate Buoyant Force"
+        PRINT "3 - Calculate Vehicle Weight"
+        PRINT "4 - Calculate Net Lift"
+        PRINT "5 - Calculate Aerodynamic Drag"
+        PRINT "6 - Calculate Thrust-to-Weight Ratio"
+        PRINT "7 - Calculate Acceleration"
+        PRINT "8 - Estimate Flight Time"
+        PRINT "9 - Return to Main Menu"
 
-        # STEP 3 - GET MENU SELECTION
-
-        SET selection = INPUT "Select option (1-9): "
-
+        SET selection = INPUT "Select option 1-9: "
         REMOVE whitespace from selection
 
+        IF selection == "1":
+            CALL calculate_volume()
 
-        # STEP 4 - HANDLE MENU SELECTION
+        ELSE IF selection == "2":
+            SET volume = calculate_volume()
 
-        IF selection EQUALS "1":
-            CALL view_components(vehicle)
+            IF volume IS NOT None:
+                CALL calculate_buoyancy(volume)
 
-        ELSE IF selection EQUALS "2":
-            CALL add_component(vehicle)
+        ELSE IF selection == "3":
+            CALL calculate_weight(vehicle)
 
-        ELSE IF selection EQUALS "3":
-            CALL edit_component(vehicle)
+        ELSE IF selection == "4":
+            SET volume = calculate_volume()
 
-        ELSE IF selection EQUALS "4":
-            CALL remove_component(vehicle)
+            IF volume IS NOT None:
+                CALL calculate_net_lift(vehicle, volume)
 
-        ELSE IF selection EQUALS "5":
-            CALL calculate_mass(vehicle)
+        ELSE IF selection == "5":
+            CALL calculate_drag()
 
-        ELSE IF selection EQUALS "6":
-            CALL calculate_cost(vehicle)
+        ELSE IF selection == "6":
+            CALL calculate_thrust_to_weight(vehicle)
 
-        ELSE IF selection EQUALS "7":
-            CALL new_revision(vehicle)
+        ELSE IF selection == "7":
+            CALL calculate_acceleration(vehicle)
 
-        ELSE IF selection EQUALS "8":
-            CALL view_revisions()
+        ELSE IF selection == "8":
+            CALL calculate_flight_time()
 
-        ELSE IF selection EQUALS "9":
-            PRINT "Exiting LTA McQueen System..."
+        ELSE IF selection == "9":
             BREAK OUT OF WHILE LOOP
 
         ELSE:
-            PRINT "ERROR: Invalid selection."
-            PRINT "Please enter a number from 1 to 9."
+            PRINT "Error: Select 1-9"
 
+ELSE IF choice is main menu: 
+    main menu code
 
-# ==================================================
-# PROGRAM ENTRY POINT
-# ==================================================
-
-IF this file is being executed directly:
-    CALL main()
-
-DEFINE FUNCTION main():	def main():
-WHILE True:	while True:
-ELSE IF	elif
-ELSE	else:
-PRINT	print()
-INPUT	input()
-BREAK OUT OF WHILE LOOP	break
-CALL add_component(vehicle)	add_component(vehicle)
-vehicle name	vehicle["name"]
-vehicle revision	vehicle["revision"]
-REMOVE whitespace	.strip()
+ELSE: 
+    Must choose main or physics.
