@@ -20,28 +20,39 @@ from physics import (
     calculate_acceleration,
     calculate_flight_time
 )
+from testing import (
+    run_mass_test,
+    run_budget_test,
+    run_lift_test,
+    run_thrust_test,
+    run_endurance_test,
+    run_component_check,
+    run_test_suite,
+    save_test_report
+)
 import sys
 
 # Choose main function or physics function
 def main_menu():   
     while True:
         print("LTA ANALYSIS SOFTWARE")
-        print("1 - Main Menu 2 - Physics Menu 3 - Exit Software")
-        menu_choice = input("Enter Menu Choice (1-3): ").strip()
+        print("1 - Main Menu 2 - Physics Menu 3 - Vehicle Testing Menu 4 - Exit Software")
+        menu_choice = input("Enter Menu Choice (1-4): ").strip()
         if menu_choice == "1":
             main()
         elif menu_choice == "2":
             physics()
         elif menu_choice == "3":
+            testing()
+        elif menu_choice == "4":
             print("Shutting down LTA Analysis Software...")
             sys.exit(0)
         else:
             print("Error: Must Enter 1-3")
 
-# main function
+# main configuration menu function
 def main():
     while True:
-        print(f"\n")
         print("================================")
         print("LTA Main Functions")
         print("================================")
@@ -81,7 +92,7 @@ def main():
         else:
             print("Error: Select 1-9")
 
-
+# Physics tools menu function
 def physics():
     while True:
         print("================================")
@@ -126,8 +137,53 @@ def physics():
         else:
             print("Error: Select 1-9")
 
+# Testing tools menu function
+def testing():
+    results = []
+    while True:
+        print("================================")
+        print("LTA Testing Functions")
+        print("================================")
+        print(f"Vehicle: {vehicle['name']}")
+        print(f"Active Revision: {vehicle['revision']}")
+        print("--------------------------------")
+        print("1 - Mass Verification Test")
+        print("2 - Budget Verification Test")
+        print("3 - Lift Verification Test")
+        print("4 - Thrust Verification Test")
+        print("5 - Endurance Test")
+        print("6 - Component Validation Test")
+        print("7 - Full Vehicle Test Suite")
+        print("8 - Save Test Report to Files")
+        print("9 - Return to Main Menu")
+        print("================================")
+
+        selection = input("Select option 1-9: ").strip()
+        if selection == "1":
+            run_mass_test(vehicle)
+        elif selection == "2":
+            run_budget_test(vehicle)
+        elif selection == "3":
+            run_lift_test(vehicle)
+        elif selection == "4":
+            run_thrust_test()
+        elif selection == "5":
+            run_endurance_test()
+        elif selection == "6":
+            run_component_check(vehicle)
+        elif selection == "7":
+            results = run_test_suite(vehicle)
+        elif selection == "8":
+            if not results:
+                print("No test results found. Run test suite first (7)")
+            else:
+                save_test_report(vehicle, results)
+        elif selection == "9":
+            break
+        else:
+            print("Error: Select 1-9")
+
 # Start of program run:
-# Vehicle settings and constants
 if __name__ == "__main__":
     vehicle = load_vehicle()
 
