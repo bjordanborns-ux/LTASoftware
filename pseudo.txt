@@ -1,67 +1,401 @@
 
-ADD choice menu for different pages:
-   GET choice physics menu or main menu
-   if choice is physics:
+# ==========================================================
+# LTA McQueen - Testing & Verification Module
+# testing.py
+# ==========================================================
 
 
-DEFINE FUNCTION physics_menu(vehicle):
+# ----------------------------------------------------------
+# IMPORTS
+# ----------------------------------------------------------
 
-    WHILE True:
+IMPORT json
+IMPORT datetime
+IMPORT Path FROM pathlib
 
-        PRINT "================================"
-        PRINT "LTA McQueen - Physics Analysis"
-        PRINT "================================"
-        PRINT "1 - Calculate Balloon Volume"
-        PRINT "2 - Calculate Buoyant Force"
-        PRINT "3 - Calculate Vehicle Weight"
-        PRINT "4 - Calculate Net Lift"
-        PRINT "5 - Calculate Aerodynamic Drag"
-        PRINT "6 - Calculate Thrust-to-Weight Ratio"
-        PRINT "7 - Calculate Acceleration"
-        PRINT "8 - Estimate Flight Time"
-        PRINT "9 - Return to Main Menu"
+IMPORT calculate_mass, calculate_cost FROM vehicle.py
 
-        SET selection = INPUT "Select option 1-9: "
-        REMOVE whitespace from selection
+IMPORT calculate_net_lift FROM physics.py
 
-        IF selection == "1":
-            CALL calculate_volume()
 
-        ELSE IF selection == "2":
-            SET volume = calculate_volume()
+# ----------------------------------------------------------
+# TESTING CONSTANTS
+# ----------------------------------------------------------
 
-            IF volume IS NOT None:
-                CALL calculate_buoyancy(volume)
+SET MAX_MASS = 800
+SET MAX_BUDGET = 900
 
-        ELSE IF selection == "3":
-            CALL calculate_weight(vehicle)
+# Placeholder requirements.
+# Replace with actual team requirements when confirmed.
 
-        ELSE IF selection == "4":
-            SET volume = calculate_volume()
+SET MIN_NET_LIFT = 0.0
+SET MIN_FLIGHT_TIME = 10.0
 
-            IF volume IS NOT None:
-                CALL calculate_net_lift(vehicle, volume)
+SET BASE_DIR = directory containing this Python file
+SET REPORT_DIR = BASE_DIR / "data" / "test_reports"
 
-        ELSE IF selection == "5":
-            CALL calculate_drag()
+CREATE REPORT_DIR if it does not exist
 
-        ELSE IF selection == "6":
-            CALL calculate_thrust_to_weight(vehicle)
 
-        ELSE IF selection == "7":
-            CALL calculate_acceleration(vehicle)
+# ==========================================================
+# FUNCTION 1 - MASS REQUIREMENT TEST
+# ==========================================================
 
-        ELSE IF selection == "8":
-            CALL calculate_flight_time()
+DEFINE FUNCTION run_mass_test(vehicle):
 
-        ELSE IF selection == "9":
-            BREAK OUT OF WHILE LOOP
+    PRINT "MASS REQUIREMENT TEST"
+
+    SET regulated_mass, total_mass =
+        CALL calculate_mass(vehicle)
+
+    SET margin = MAX_MASS - regulated_mass
+
+    IF regulated_mass <= MAX_MASS:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT regulated mass
+    PRINT mass margin
+
+    SET result = DICTIONARY:
+        "test": "Mass Requirement"
+        "status": status
+        "measured": regulated_mass
+        "limit": MAX_MASS
+        "unit": "g"
+
+    RETURN result
+
+
+# ==========================================================
+# FUNCTION 2 - BUDGET REQUIREMENT TEST
+# ==========================================================
+
+DEFINE FUNCTION run_budget_test(vehicle):
+
+    PRINT "BUDGET REQUIREMENT TEST"
+
+    SET total_cost, remaining_budget =
+        CALL calculate_cost(vehicle)
+
+    IF total_cost <= MAX_BUDGET:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT total cost
+    PRINT remaining budget
+
+    SET result = DICTIONARY:
+        "test": "Budget Requirement"
+        "status": status
+        "measured": total_cost
+        "limit": MAX_BUDGET
+        "unit": "Gils"
+
+    RETURN result
+
+
+# ==========================================================
+# FUNCTION 3 - NET LIFT TEST
+# ==========================================================
+
+DEFINE FUNCTION run_lift_test(vehicle):
+
+    PRINT "NET LIFT VERIFICATION TEST"
+
+    GET balloon volume in cubic meters
+
+    IF volume <= 0:
+        PRINT "Invalid volume."
+        RETURN None
+
+    SET net_lift = CALL calculate_net_lift(
+        vehicle, volume
+    )
+
+    IF net_lift IS None:
+        PRINT "Lift calculation failed."
+        RETURN None
+
+    IF net_lift >= MIN_NET_LIFT:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT net lift
+
+    SET result = DICTIONARY:
+        "test": "Net Lift"
+        "status": status
+        "measured": net_lift
+        "limit": MIN_NET_LIFT
+        "unit": "N"
+
+    RETURN result
+
+
+# ==========================================================
+# FUNCTION 4 - PROPULSION / DRAG TEST
+# ==========================================================
+
+DEFINE FUNCTION run_thrust_test():
+
+    PRINT "PROPULSION VERIFICATION TEST"
+
+    GET available motor thrust in newtons
+    GET expected aerodynamic drag in newtons
+
+    IF thrust < 0 OR drag < 0:
+        PRINT "Invalid values."
+        RETURN None
+
+    SET thrust_margin = thrust - drag
+
+    IF thrust_margin > 0:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT thrust margin
+
+    SET result = DICTIONARY:
+        "test": "Propulsion / Drag"
+        "status": status
+        "measured": thrust_margin
+        "limit": 0
+        "unit": "N"
+
+    RETURN result
+
+
+# ==========================================================
+# FUNCTION 5 - ENDURANCE TEST
+# ==========================================================
+
+DEFINE FUNCTION run_endurance_test():
+
+    PRINT "FLIGHT ENDURANCE TEST"
+
+    GET battery capacity in mAh
+    GET average electrical current in mA
+
+    IF battery capacity <= 0 OR current <= 0:
+        PRINT "Invalid battery values."
+        RETURN None
+
+    SET estimated_minutes =
+        (battery capacity / current) * 60
+
+    IF estimated_minutes >= MIN_FLIGHT_TIME:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT estimated flight time
+
+    SET result = DICTIONARY:
+        "test": "Flight Endurance"
+        "status": status
+        "measured": estimated_minutes
+        "limit": MIN_FLIGHT_TIME
+        "unit": "minutes"
+
+    RETURN result
+
+
+# ==========================================================
+# FUNCTION 6 - COMPONENT DATA CHECK
+# ==========================================================
+
+DEFINE FUNCTION run_component_check(vehicle):
+
+    PRINT "COMPONENT DATA VERIFICATION"
+
+    SET errors = EMPTY LIST
+    SET component_ids = EMPTY SET
+
+    FOR each component IN vehicle["components"]:
+
+        IF component ID is missing or empty:
+            ADD error to errors
+
+        ELSE IF component ID already in component_ids:
+            ADD duplicate ID error to errors
 
         ELSE:
-            PRINT "Error: Select 1-9"
+            ADD component ID to component_ids
 
-ELSE IF choice is main menu: 
-    main menu code
+        CHECK required fields:
+            id
+            name
+            category
+            mass_g
+            cost_gils
+            position_mm
+            excl_status
 
-ELSE: 
-    Must choose main or physics.
+        IF any required field missing:
+            ADD error to errors
+            CONTINUE to next component
+
+        IF mass is negative:
+            ADD error to errors
+
+        IF cost is negative:
+            ADD error to errors
+
+        IF position_mm does not contain 3 numbers:
+            ADD error to errors
+
+        IF exclusion status is not Boolean:
+            ADD error to errors
+
+    IF errors list is empty:
+        SET status = "PASS"
+    ELSE:
+        SET status = "FAIL"
+
+    PRINT status
+    PRINT number of errors
+
+    FOR each error IN errors:
+        PRINT error
+
+    RETURN DICTIONARY:
+        "test": "Component Data Check"
+        "status": status
+        "errors": errors
+
+
+# ==========================================================
+# FUNCTION 7 - FULL TEST SUITE
+# ==========================================================
+
+DEFINE FUNCTION run_test_suite(vehicle):
+
+    PRINT "LTA McQueen - Verification Suite"
+
+    SET results = EMPTY LIST
+
+    # Validate component data before calculating
+    # mass and cost.
+
+    SET component_result =
+        CALL run_component_check(vehicle)
+
+    ADD component_result TO results
+
+    IF component_result status == "FAIL":
+        PRINT "Fix component data before running"
+        PRINT "the remaining tests."
+        RETURN results
+
+    SET mass_result = CALL run_mass_test(vehicle)
+    ADD mass_result TO results
+
+    SET budget_result = CALL run_budget_test(vehicle)
+    ADD budget_result TO results
+
+    # Additional performance tests require
+    # input values from the user.
+
+    ASK "Run lift test? (Y/N)"
+
+    IF answer == "Y":
+        SET lift_result = CALL run_lift_test(vehicle)
+
+        IF lift_result IS NOT None:
+            ADD lift_result TO results
+
+    ASK "Run thrust test? (Y/N)"
+
+    IF answer == "Y":
+        SET thrust_result = CALL run_thrust_test()
+
+        IF thrust_result IS NOT None:
+            ADD thrust_result TO results
+
+    ASK "Run endurance test? (Y/N)"
+
+    IF answer == "Y":
+        SET endurance_result = CALL run_endurance_test()
+
+        IF endurance_result IS NOT None:
+            ADD endurance_result TO results
+
+    # Count results
+
+    SET passed = 0
+    SET failed = 0
+
+    FOR each result IN results:
+
+        IF result["status"] == "PASS":
+            INCREASE passed BY 1
+
+        ELSE IF result["status"] == "FAIL":
+            INCREASE failed BY 1
+
+    PRINT "================================"
+    PRINT "VERIFICATION SUMMARY"
+    PRINT "================================"
+    PRINT "Tests Run: " + LENGTH of results
+    PRINT "Passed: " + passed
+    PRINT "Failed: " + failed
+
+    RETURN results
+
+
+# ==========================================================
+# FUNCTION 8 - SAVE TEST REPORT
+# ==========================================================
+
+DEFINE FUNCTION save_test_report(vehicle, results):
+
+    PRINT "SAVE TEST REPORT"
+
+    IF results is empty:
+        PRINT "No test results to save."
+        RETURN False
+
+    GET current date and time
+
+    CREATE timestamp string suitable for filenames
+
+    SET report_filename =
+        vehicle revision + "_" + timestamp + ".json"
+
+    SET report_path = REPORT_DIR / report_filename
+
+    CREATE report DICTIONARY:
+        "vehicle": vehicle["name"]
+        "revision": vehicle["revision"]
+        "timestamp": current date and time
+        "results": results
+
+    TRY:
+        OPEN report_path in write mode
+
+        SAVE report dictionary using json.dump
+        with indentation of 4
+
+    EXCEPT file writing error:
+        PRINT "Unable to save report."
+        RETURN False
+
+    PRINT "Test report saved successfully."
+    PRINT report_path
+
+    RETURN True
+
+
+# ==========================================================
+# END OF TESTING MODULE
+# ==========================================================
