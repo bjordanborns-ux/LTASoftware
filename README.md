@@ -1,5 +1,5 @@
 # LTASoftware
-Software for LTA grpup final project Intro to Engineering Lab at Kent State University
+Software for LTA group final project Intro to Engineering Lab at Kent State University
 
 The program helps us keep track of vehicle components, calculate mass and cost, and save different versions of our design as we make changes.
 
