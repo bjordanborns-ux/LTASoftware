@@ -3,7 +3,7 @@ Software for LTA grpup final project Intro to Engineering Lab at Kent State Univ
 
 The program helps us keep track of vehicle components, calculate mass and cost, and save different versions of our design as we make changes.
 
-Features
+### Features
 
 * Component Management: Add, edit, remove, and view vehicle components.
 * Mass Calculations: Calculate total vehicle mass and competition-regulated mass.
@@ -11,42 +11,39 @@ Features
 * Revision History: Save previous versions of our design so we can reference them later.
 * JSON Storage: Automatically save vehicle data between sessions.
 
-Project Limits
+### Project Limits
 
 Requirement	Limit
 Maximum Mass	800 g (excluding battery and balloon)
 Maximum Budget	900 Gils
 Propulsion	3 propellers
 
-Project Files
+### Project Files
 
-LSFA/
-├── main.py          # Main menu and program startup
-├── vehicle.py       # Components, mass, cost, revisions
-├── physics.py       # Flight calculations (planned)
-├── testing.py       # Testing and results (planned)
-├── data/
-│   ├── vehicle.json
-│   └── revisions/
-└── README.md
+LTASoftware-main/
+- main.py          # Main menu and program startup
+- vehicle.py       # Components, mass, cost, revisions
+- physics.py       # Flight calculations 
+- testing.py       # Testing and results
+- data/
+  vehicle.json
+- README.md
 
-Running the Program
+### Running the Program
 
-Requires Python 3. No additional libraries are needed for the current vehicle management functions.
+Requires Python 3+
 
-Once the main menu is complete, run:
-
-python main.py
+Run: `python main.py`
 
 Vehicle data is saved to data/vehicle.json. Finalized revisions are stored separately in data/revisions/.
 
-Current Progress
+### Current Progress
 
 * [x]	Component registration and editing
 * [x]	Component removal
 * [x]	Mass and budget calculations
 * [x]	JSON saving and loading
 * [x]	Revision tracking
-* [ ]	Main menu integration and testing
-* [ ]	Flight physics calculations
-* [ ]	Testing and analysis functions
+* [x]	Main menu integration and testing
+* [x]	Flight physics calculations
+* [x]	Testing and analysis functions
