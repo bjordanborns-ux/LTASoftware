@@ -26,7 +26,8 @@ LTASoftware-main/
 - physics.py       # Flight calculations 
 - testing.py       # Testing and results
 - data/
-  vehicle.json
+  - vehicle.json
+  - flight_tests.csv
 - README.md
 
 ### Running the Program
@@ -35,7 +36,7 @@ Requires Python 3+
 
 Run: `python main.py`
 
-Vehicle data is saved to data/vehicle.json. Finalized revisions are stored separately in data/revisions/.
+Vehicle data is saved to data/vehicle.json. Test results saved to data/flight_tests.csv for easy analysis.
 
 ### Current Progress
 
